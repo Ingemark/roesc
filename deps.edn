@@ -1,0 +1,29 @@
+{:deps    {org.clojure/clojure                  {:mvn/version "1.10.1-beta2"}
+           org.clojure/core.async               {:mvn/version "0.4.490"}
+           com.cognitect/http-client            {:mvn/version "0.1.87"}
+           com.cognitect.aws/api                {:mvn/version "0.8.301"}
+           com.cognitect.aws/endpoints          {:mvn/version "1.1.11.537"}
+           com.cognitect.aws/sqs                {:mvn/version "697.2.391.0"}
+           org.clojure/java.jdbc                {:mvn/version "0.7.9"}
+           org.clojure/data.json                {:mvn/version "0.2.6"}
+           org.postgresql/postgresql            {:mvn/version "42.2.5"}
+           com.amazonaws/aws-lambda-java-log4j2 {:mvn/version "1.1.0"}
+           org.apache.logging.log4j/log4j-core  {:mvn/version "2.11.2"}
+           org.apache.logging.log4j/log4j-api   {:mvn/version "2.11.2"}
+           org.clojure/tools.logging            {:mvn/version "0.4.1"}
+           environ                              {:mvn/version "1.1.0"}}
+ :paths   ["src" "resources"]
+ :aliases {:test    {:extra-paths ["test"]
+                     :extra-deps  {orchestra              {:mvn/version "2018.12.06-2"}
+                                   org.clojure/test.check {:mvn/version "0.9.0"}}}
+           :runner  {:extra-deps {com.cognitect/test-runner
+                                  {:git/url "https://github.com/cognitect-labs/test-runner.git"
+                                   :sha     "209b64504cb3bd3b99ecfec7937b358a879f55c1"}
+                                  org.clojure/test.check {:mvn/version "0.9.0"}}
+                     :main-opts  ["-m" "cognitect.test-runner"]}
+           :eastwood {:main-opts ["-m" "eastwood.lint" {:source-paths ["src"]}]
+	              :extra-deps {jonase/eastwood
+                                   {:git/url "https://github.com/jonase/eastwood.git"
+                                    :sha     "db6a810f8a9bab65a840dcf49525022659c6d83d"}}}
+           :outdated {:extra-deps {olical/depot {:mvn/version "1.8.2"}}
+                      :main-opts ["-m" "depot.outdated.main"]}}}
