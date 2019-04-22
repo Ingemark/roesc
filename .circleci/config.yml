@@ -18,6 +18,6 @@ jobs:
           key: roesc-{{ checksum "project.clj" }}
       - run: lein test
       - run: lein uberjar
-      - run: mkdir -p artifacts && mv target/uberjar/roesc-*-standalone.jar artifacts/roesc-b${CIRCLE_BUILD_NUM}-${CIRCLE_TAG}.jar
+      - run: mkdir -p artifacts && mv target/uberjar/roesc-*-standalone.jar artifacts/roesc-b${CIRCLE_BUILD_NUM}-${CIRCLE_SHA1}.jar
       - store_artifacts:
           path: artifacts
