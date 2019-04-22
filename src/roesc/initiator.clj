@@ -49,7 +49,7 @@
   (fn request-processing-fn [request]
     (process-request repository request)))
 
-(defn- within-time-limit [start-time-millis time-limit-millis]
+(defn- within-time-limit? [start-time-millis time-limit-millis]
   (if (nil? time-limit-millis)
     true
     (< (- (System/currentTimeMillis) start-time-millis)
@@ -95,7 +95,7 @@
                    (request-processing-fn request)))))
             (skipping-exceptions
              (message-cleanup-fn messages))
-            (if (within-time-limit start-time max-run-time-millis)
+            (if (within-time-limit? start-time max-run-time-millis)
               (recur (message-fetching-fn))
               (logger/info "Exiting due to exceeding initiator max run time limit of"
                            max-run-time-millis))))))
