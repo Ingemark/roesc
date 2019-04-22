@@ -1,5 +1,7 @@
 # roesc
 
+[![CircleCI](https://circleci.com/gh/Ingemark/roesc.svg?style=svg)](https://circleci.com/gh/Ingemark/roesc)
+
 This is the RoomOrders (https://www.roomorders.com) escalation component which
 is run periodically as AWS Lambda. It receives requests to start and stop
 escalation processes from RoomOrders backend, checks for due notifications and
