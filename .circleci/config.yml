@@ -19,5 +19,5 @@ jobs:
       - run: lein test
       - run: lein uberjar
       - store_artifacts:
-          path: target/uberjar/roesc-*-standalone.jar
-          destination: uberjar
+          path: target/uberjar/roesc-0.1.0-SNAPSHOT-standalone.jar
+          destination: roesc-b${CIRCLE_BUILD_NUM}-${CIRCLE_TAG}.jar
