@@ -1,0 +1,22 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/roesc
+    docker:
+      - image: circleci/clojure:lein-2.8.3
+    environment:
+      JVM_OPTS: -Xmx1024m
+    steps:
+      - checkout
+      - restore_cache:
+          key: roesc-{{ checksum "project.clj" }}
+      - run: lein deps
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: roesc-{{ checksum "project.clj" }}
+      - run: lein test
+      - run: lein uberjar
+      - store_artifacts:
+          path: target/uberjar/roesc-*-standalone.jar
+          destination: uberjar
