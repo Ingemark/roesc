@@ -32,9 +32,12 @@
 
 (defn- make-http-send-fn [client]
   (fn twilio-http-send [request]
-    (let [result-chan (http/submit client request)]
-      (logger/info "Twilio request received a response with status:"
-                   (:status (async/<!! result-chan))))))
+    (let [response-status (-> (http/submit client request)
+                              async/<!!
+                              :status)]
+      (logger/log (if (<= 200 response-status 299) :info :error)
+                  (format "Twilio request received a response with status %s"
+                          response-status)))))
 
 (defn- basic-auth-token [username password]
   (String. (.encode (Base64/getEncoder) (.getBytes (format "%s:%s" username password)))))

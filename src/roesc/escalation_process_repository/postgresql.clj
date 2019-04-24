@@ -16,8 +16,8 @@
 (defn- deserialize [notifications]
   (edn/read-string notifications))
 
-(defn- make-db-entry [id notifications]
-  {:id id
+(defn- make-db-entry [process-id notifications]
+  {:id process-id
    :at (->> notifications (map :at) sort first)
    :notifications (serialize notifications)})
 
