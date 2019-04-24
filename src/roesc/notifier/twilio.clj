@@ -2,7 +2,7 @@
   (:require [clojure.core.async :as async]
             [clojure.tools.logging :as logger]
             [cognitect.http-client :as http]
-            [roesc.util :refer [with-time-logging]])
+            [roesc.util :refer [with-time-logging skipping-exceptions]])
   (:import java.util.Base64
            java.net.URLEncoder
            java.nio.ByteBuffer))
@@ -14,8 +14,18 @@
         matching-area-code (first (filter #(.startsWith phone-number %) area-codes-prefix))]
     (get caller-id-registry (or matching-area-code "default"))))
 
-(defn ->bbuf [^String content]
+(defn- ->bbuf [^String content]
   (ByteBuffer/wrap (.getBytes content)))
+
+(defn- url-encode [s]
+  (URLEncoder/encode s "UTF-8"))
+
+(defn- form-url-encode
+  "URL-encode keys and values from the map."
+  [m]
+  (->> m
+       (map (fn [[k v]] (str (url-encode (str k)) "=" (url-encode (str v)))))
+       (clojure.string/join "&")))
 
 (defn- prepare-request [{:keys [account-sid host token phone-number caller-id url]}]
   {:server-name    host
@@ -25,16 +35,14 @@
    :uri            (format "/2010-04-01/Accounts/%s/Calls.json" account-sid)
    :headers        {"authorization" (format "Basic %s" token)
                     "content-type"  "application/x-www-form-urlencoded"}
-   :body           (->bbuf (format "Method=GET&To=%s&From=%s&Url=%s"
-                                   (URLEncoder/encode phone-number "UTF-8")
-                                   (URLEncoder/encode caller-id "UTF-8")
-                                   (URLEncoder/encode url "UTF-8")))})
+   :body           (->bbuf (form-url-encode {"Method" "GET"
+                                             "To" phone-number
+                                             "From" caller-id
+                                             "Url" url}))})
 
 (defn- make-http-send-fn [client]
   (fn twilio-http-send [request]
-    (let [response-status (-> (http/submit client request)
-                              async/<!!
-                              :status)]
+    (let [response-status (-> (http/submit client request) async/<!! :status)]
       (logger/log (if (<= 200 response-status 299) :info :error)
                   (format "Twilio request received a response with status %s"
                           response-status)))))
@@ -49,20 +57,18 @@
                                             {:phone-number phone-number
                                              :token        (basic-auth-token account-sid auth-token)
                                              :caller-id    caller-id}))]
-        (logger/info "Calling" phone-number "using caller-id" caller-id "for process" process-id)
+        (logger/info "Sending request to call" phone-number "using caller-id" caller-id "for process" process-id)
         (with-time-logging "Twilio http communication"
           (http-send-fn request)))
-      (logger/error "Failed to make call, unable to find caller id for"
+      (logger/error "Failed to make a call, unable to find caller id for"
                     phone-number "in registry" (pr-str caller-id-registry)))))
 
 (defn- make-handler [call-fn]
   (fn twilio-handler-fn [notifications]
     (logger/info "Preparing to make" (count notifications) "phone call(s)" (map :phone-number notifications))
     (->> notifications
-         (map #(try
-                 (future (call-fn (:process-id %) (:phone-number %)))
-                 (catch Exception e (logger/error e) :failed-to-create-future)))
-         doall ; must do this to start all futures
+         (map #(skipping-exceptions (future (call-fn (:process-id %) (:phone-number %)))))
+         doall                    ; must do this to start all futures
          (filter future?)
          (map #(deref % 10000 :failed))
          doall)))
