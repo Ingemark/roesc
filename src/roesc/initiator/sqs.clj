@@ -31,6 +31,5 @@
         (logger/error "Failed to delete some messages!" (:Failed response))))))
 
 (defn extract-payload [message]
-  (let [payload (:Body message)]
-    (when payload
-      (read-str payload :bigdec true :key-fn keyword))))
+  (when-let [payload (:Body message)]
+    (read-str payload :bigdec true :key-fn keyword)))
