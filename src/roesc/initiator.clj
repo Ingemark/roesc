@@ -17,33 +17,25 @@
                 (seq (:notifications request))
                 (every? valid-channel? (:notifications request))))))
 
-(defn- decide [request process-exists?]
-  (cond
-    (and (= "start" (:action request))
-         (not process-exists?))
-    :create-new-process
+(defn- should-create-new-process? [request process-exists?]
+  (and (= "start" (:action request))
+       (not process-exists?)))
 
-    (and (= "stop" (:action request))
-         process-exists?)
-    :cancel-process
-
-    :else
-    :ignore-request))
-
-(defn- update-state [repository request decision]
-  (case decision
-    :create-new-process
-    (process-repository/insert repository (:process-id request) (:notifications request))
-
-    :cancel-process
-    (process-repository/delete repository (:process-id request))
-
-    (logger/debug "no need to do anything on" decision)))
+(defn- should-cancel-process? [request process-exists?]
+  (and (= "stop" (:action request))
+       process-exists?))
 
 (defn- process-request [repository request]
-  (let [process-exists? (boolean (process-repository/exists? repository (:process-id request)))
-        decision     (decide request process-exists?)]
-    (update-state repository request decision)))
+  (let [process-exists? (boolean (process-repository/exists? repository (:process-id request)))]
+    (cond
+      (should-create-new-process? request process-exists?)
+      (process-repository/insert repository (:process-id request) (:notifications request))
+
+      (should-cancel-process? request process-exists?)
+      (process-repository/delete repository (:process-id request))
+
+      :else
+      (logger/debug "no need to do anything on" request))))
 
 (defn make-request-processing-fn [repository]
   (fn request-processing-fn [request]
