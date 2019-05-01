@@ -42,10 +42,9 @@
     (process-request repository request)))
 
 (defn- within-time-limit? [start-time-millis time-limit-millis]
-  (if (nil? time-limit-millis)
-    true
-    (< (- (System/currentTimeMillis) start-time-millis)
-       time-limit-millis)))
+  (or (nil? time-limit-millis)
+      (let [elapsed-time (- (System/currentTimeMillis) start-time-millis)]
+        (< elapsed-time time-limit-millis))))
 
 (defn make-initiator-fn
   "Construct the initiator main input function.
