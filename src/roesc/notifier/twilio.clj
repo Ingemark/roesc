@@ -48,7 +48,7 @@
                           response-status)))))
 
 (defn- basic-auth-token [username password]
-  (String. (.encode (Base64/getEncoder) (.getBytes (format "%s:%s" username password)))))
+  (.encodeToString (Base64/getEncoder) (.getBytes (format "%s:%s" username password))))
 
 (defn- make-call-fn [{:keys [http-send-fn account-sid auth-token host url caller-id-registry] :as configuration}]
   (fn twilio-call-fn [process-id phone-number]
