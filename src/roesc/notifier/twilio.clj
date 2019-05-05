@@ -1,6 +1,7 @@
 (ns roesc.notifier.twilio
   (:require [clojure.core.async :as async]
             [clojure.tools.logging :as logger]
+            [clojure.string :refer [join]]
             [cognitect.http-client :as http]
             [roesc.util :refer [with-time-logging skipping-exceptions]])
   (:import java.util.Base64
@@ -25,7 +26,7 @@
   [m]
   (->> m
        (map (fn [[k v]] (str (url-encode (str k)) "=" (url-encode (str v)))))
-       (clojure.string/join "&")))
+       (join "&")))
 
 (defn- basic-auth-token [username password]
   (.encodeToString (Base64/getEncoder) (.getBytes (format "%s:%s" username password))))

@@ -7,15 +7,15 @@
 
 (def supported-channels #{"phone"})
 
-(defn valid-channel? [notification]
-  (contains? supported-channels (:channel notification)))
+(defn valid-channel? [channel]
+  (contains? supported-channels channel))
 
 (defn valid? [request]
   (and (:process-id request)
        (or (= "stop" (:action request))
            (and (= "start" (:action request))
-                (seq (:notifications request))
-                (every? valid-channel? (:notifications request))))))
+                (not-empty (:notifications request))
+                (->> request :notifications (map :channel) (every? valid-channel?))))))
 
 (defn- should-create-new-process? [request process-exists?]
   (and (= "start" (:action request))
