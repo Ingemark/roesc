@@ -27,13 +27,16 @@
        (map (fn [[k v]] (str (url-encode (str k)) "=" (url-encode (str v)))))
        (clojure.string/join "&")))
 
-(defn- prepare-request [{:keys [account-sid host token phone-number caller-id url]}]
+(defn- basic-auth-token [username password]
+  (.encodeToString (Base64/getEncoder) (.getBytes (format "%s:%s" username password))))
+
+(defn- prepare-request [{:keys [account-sid auth-token host phone-number caller-id url]}]
   {:server-name    host
    :server-port    443
    :scheme         :https
    :request-method :post
    :uri            (format "/2010-04-01/Accounts/%s/Calls.json" account-sid)
-   :headers        {"authorization" (format "Basic %s" token)
+   :headers        {"authorization" (format "Basic %s" (basic-auth-token account-sid auth-token))
                     "content-type"  "application/x-www-form-urlencoded"}
    :body           (->bbuf (form-url-encode {"Method" "GET"
                                              "To" phone-number
@@ -47,15 +50,12 @@
                   (format "Twilio request received a response with status %s"
                           response-status)))))
 
-(defn- basic-auth-token [username password]
-  (.encodeToString (Base64/getEncoder) (.getBytes (format "%s:%s" username password))))
-
 (defn- make-call-fn [{:keys [http-send-fn account-sid auth-token host url caller-id-registry] :as configuration}]
   (fn twilio-call-fn [process-id phone-number]
     (if-let [caller-id (find-caller-id caller-id-registry phone-number)]
-      (let [request (prepare-request (merge (select-keys configuration [:account-sid :host :url])
+      (let [request (prepare-request (merge (select-keys configuration
+                                                         [:account-sid :auth-token :host :url])
                                             {:phone-number phone-number
-                                             :token        (basic-auth-token account-sid auth-token)
                                              :caller-id    caller-id}))]
         (logger/info "Sending request to call" phone-number "using caller-id" caller-id "for process" process-id)
         (with-time-logging "Twilio http communication"

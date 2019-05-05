@@ -124,16 +124,17 @@
         (map #(future (println %) (throw (Exception. "F")))
              (range 2))))
 
-  (def resp (let [client (http/create {})
-                  url (java.net.URL. config/caller-id-registry-configuration)]
+  (def resp (let [client (http/create {})]
               (async/<!!
-               (http/submit client {:server-name (.getHost url)
-                                    :server-port (if (= -1 (.getPort url)) (.getDefaultPort url) (.getPort url))
-                                    :scheme (.getProtocol url)
-                                    :uri (.getPath url)
+               (http/submit client {:server-name "api.twilio.com"
+                                    :server-port 443
+                                    :scheme "https"
+                                    :uri "https://s3.amazon.com"
                                     :request-method :get}))))
   (String. (.array (:body resp)))
 
   (roesc.core/run)
+
+  (logger/log :error "Hello")
 
   )
