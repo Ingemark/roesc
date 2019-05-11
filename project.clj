@@ -8,6 +8,7 @@
                  [com.cognitect.aws/api "0.8.289"]
                  [com.cognitect.aws/endpoints "1.1.11.526"]
                  [com.cognitect.aws/sqs "697.2.391.0"]
+                 [com.draines/postal "2.0.3"]
                  [org.clojure/java.jdbc "0.7.9"]
                  [org.clojure/data.json "0.2.6"]
                  [org.postgresql/postgresql "42.2.5"]

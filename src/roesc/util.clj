@@ -10,6 +10,9 @@
                  (logger/error "skipping exception:" e#)
                  (Thread/sleep ~delay-millis))))
 
+(defmacro with-exception-logging [& body]
+  `(try ~@body (catch Exception e# (logger/error e#))))
+
 (defmacro with-time-logging [name & body]
   `(let [start-time# (System/currentTimeMillis)]
      ~@body

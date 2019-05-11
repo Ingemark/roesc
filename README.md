@@ -5,7 +5,8 @@
 This is the RoomOrders (https://www.roomorders.com) escalation component which
 is run periodically as AWS Lambda. It receives requests to start and stop
 escalation processes from RoomOrders backend, checks for due notifications and
-makes phone calls using the Twila service.
+sends them using various protocols (e.g. makes phone calls using the Twilio
+service or sends emails using SMTP protocol.)
 
 Start requests should be sent when an order is created in the RoomOrders system
 for a restaurant and stop requests should be sent when any order in the restaurant is confirmed. 
@@ -21,7 +22,8 @@ Here are some examples.
  "process-id": "restaurantname",
  "action": "start",
  "notifications": [{"channel": "phone", "at": 1555057084, "phone-number": "+3851111111"},
-                   {"channel": "phone", "at": 1555057096, "phone-number": "+3851111111"}]
+                   {"channel": "phone", "at": 1555057096, "phone-number": "+3851111111"},
+                   {"channel": "email", "at": 1555057096, "email": "me@example.org"}]
 }
 ```
 
@@ -35,7 +37,7 @@ Here are some examples.
 The meaning of attributes is the following:
 - process-id: mandatory; an id of the escalation process, usually one escalation process per restaurantname,
 - action: mandatory; "start" or "stop",
-- channel: mandatory; currently must be "phone",
+- channel: mandatory; "phone" or "email",
 - at: (Unix epoch) time when the notification should be sent,
 - phone-number: "full-format" phone number which to call.
 
@@ -105,8 +107,8 @@ lein test
 * Running integration tests
 
 Tests tagged with :integration typically connect to AWS SQS, to Postgresql
-database and to Twilio Web Service. Before running them, you should set up the
-environment in the following way.
+database and to the Twilio Web Service. Before running them, you should set up
+the environment in the following way.
 
 Pre-requisites:
 
@@ -148,6 +150,7 @@ Example of configuration XML pointed to by TWILIO_URL env.var.:
 <?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Say>Hello! You have new orders in the Roomorders service.</Say>
+    <Pause length="1"/>
     <Hangup/>
 </Response>
 ```

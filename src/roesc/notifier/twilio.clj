@@ -3,10 +3,12 @@
             [clojure.tools.logging :as logger]
             [clojure.string :refer [join]]
             [cognitect.http-client :as http]
-            [roesc.util :refer [with-time-logging skipping-exceptions]])
+            [roesc.util :refer [with-time-logging skipping-exceptions with-exception-logging]]
+            [roesc.notifier.common :as common])
   (:import java.util.Base64
            java.net.URLEncoder
-           java.nio.ByteBuffer))
+           java.nio.ByteBuffer
+           java.util.concurrent.ExecutorService))
 
 (defn- find-caller-id
   "Find caller-id which should be used for the outgoing call to `phone-number`."
@@ -52,29 +54,22 @@
                           response-status)))))
 
 (defn- make-call-fn [{:keys [http-send-fn account-sid auth-token host url caller-id-registry] :as configuration}]
-  (fn twilio-call-fn [process-id phone-number]
-    (if-let [caller-id (find-caller-id caller-id-registry phone-number)]
-      (let [request (prepare-request (merge (select-keys configuration
-                                                         [:account-sid :auth-token :host :url])
-                                            {:phone-number phone-number
-                                             :caller-id    caller-id}))]
-        (logger/info "Sending request to call" phone-number "using caller-id" caller-id "for process" process-id)
-        (with-time-logging "Twilio http communication"
-          (http-send-fn request)))
-      (logger/error "Failed to make a call, unable to find caller id for"
-                    phone-number "in registry" (pr-str caller-id-registry)))))
+  (fn twilio-call-fn [notification]
+    (with-exception-logging
+      (if-let [caller-id (find-caller-id caller-id-registry (:phone-number notification))]
+        (let [request (prepare-request (merge (select-keys configuration
+                                                           [:account-sid :auth-token :host :url])
+                                              {:phone-number (:phone-number notification)
+                                               :caller-id    caller-id}))]
+          (logger/info "Sending request to call" (:phone-number notification)
+                       "using caller-id" caller-id "for process" (:process-id notification))
+          (with-time-logging "Twilio http communication"
+            (http-send-fn request)))
+        (logger/error "Failed to make a call, unable to find caller id for"
+                      (:phone-number notification) "in registry" (pr-str caller-id-registry))))))
 
-(defn- make-handler [call-fn]
-  (fn twilio-handler-fn [notifications]
-    (logger/info "Preparing to make" (count notifications) "phone call(s)" (map :phone-number notifications))
-    (->> notifications
-         (map #(skipping-exceptions (future (call-fn (:process-id %) (:phone-number %)))))
-         doall                    ; must do this to start all futures
-         (filter future?)
-         (map #(deref % 10000 :failed))
-         doall)))
-
-(defn make-notifier [configuration]
-  (make-handler
-   (make-call-fn (merge configuration
-                        {:http-send-fn (make-http-send-fn (http/create {}))}))))
+(defn make-executor-based-notifier [configuration]
+  {:pre [contains? configuration :executor]}
+  (common/make-executor-based-handler (:executor configuration)
+                                      (make-call-fn (merge configuration
+                                                           {:http-send-fn (make-http-send-fn (http/create {}))})) ))

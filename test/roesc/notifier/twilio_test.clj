@@ -3,7 +3,9 @@
             [clojure.test :as t]
             [clojure.tools.logging :as logger]
             [roesc.spec]
-            [orchestra.spec.test]))
+            [roesc.notifier.common :as common]
+            [orchestra.spec.test])
+  (:import java.util.concurrent.Executors))
 
 (defn with-instrumentation [f]
   (orchestra.spec.test/instrument)
@@ -32,12 +34,16 @@
 
 (t/deftest using-handler
   (t/testing "must run call-fn on each notification"
-    (let [recorder (make-recorder)
-          handler (#'twilio/make-handler (get-fn recorder))]
-      (handler [{:process-id "p1" :phone-number "+1"}
-                {:process-id "p2" :phone-number "+2"}])
-      (t/is (= #{["p1" "+1"] ["p2" "+2"]}
-               (set (get-recording recorder)))))))
+    (let [executor (Executors/newFixedThreadPool 3)]
+      (try
+        (let [recorder (make-recorder)
+              handler (#'common/make-executor-based-handler executor (get-fn recorder))
+              notifications [{:process-id "p1" :phone-number "+1"}
+                             {:process-id "p2" :phone-number "+2"}]]
+          (handler notifications)
+          (t/is (= #{[(first notifications)] [(second notifications)]}
+                   (set (get-recording recorder)))))
+        (finally (.shutdown executor))))))
 
 (t/deftest using-call-fn
   (t/testing "call-fn must generate valid Twilio API requests"
@@ -48,7 +54,7 @@
                                           :host "HOST"
                                           :url "URL"
                                           :caller-id-registry {"+385" "+385123"}})]
-      (call-fn "p1" "+385777")
+      (call-fn {:process-id "p1" :phone-number "+385777"})
       (let [request (-> (get-recording recorder) ffirst)]
         (t/is (= {:server-name "HOST"
                   :server-port 443,

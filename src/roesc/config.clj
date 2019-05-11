@@ -7,6 +7,10 @@
 
 (def sqs-read-wait-time-seconds (Integer/parseInt (env :sqs-read-wait-time-seconds "3")))
 
+(def max-calling-threads (Integer/parseInt (env :max-calling-threads "3")))
+
+(def max-smtp-threads (Integer/parseInt (env :max-calling-threads "3")))
+
 (def db-spec {:dbtype   "postgresql"
               :port     (env :db-port 5432)
               :dbname   (env :db-name "roesc")
@@ -18,3 +22,12 @@
              :auth-token  (env :twilio-auth-token "UNSET")
              :host        (env :twilio-host "api.twilio.com")
              :url         (env :twilio-url)})
+
+(def smtp {:username (env :smtp-username)
+           :password (env :smtp-password)
+           :host     (env :smtp-host "localhost")
+           :port     (Integer/parseInt (env :smtp-port "587"))})
+
+(def email {:from (env :mail-from)
+            :subject (env :mail-subject "There are new orders in the RoomOrders service")
+            :body (env :mail-body "")})

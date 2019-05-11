@@ -5,7 +5,7 @@
             [clojure.tools.logging :as logger])
   (:import java.time.Instant))
 
-(def supported-channels #{"phone"})
+(def supported-channels #{"phone" "email"})
 
 (defn valid-channel? [channel]
   (contains? supported-channels channel))
