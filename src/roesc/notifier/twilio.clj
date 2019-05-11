@@ -69,7 +69,7 @@
                       (:phone-number notification) "in registry" (pr-str caller-id-registry))))))
 
 (defn make-executor-based-notifier [configuration]
-  {:pre [contains? configuration :executor]}
+  {:pre [(contains? configuration :executor)]}
   (common/make-executor-based-handler (:executor configuration)
                                       (make-call-fn (merge configuration
                                                            {:http-send-fn (make-http-send-fn (http/create {}))})) ))

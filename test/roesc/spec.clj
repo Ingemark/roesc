@@ -18,13 +18,24 @@
                                          (s/gen (s/int-in (.getEpochSecond Instant/MIN)
                                                           (.getEpochSecond Instant/MAX)))))))
 
+(s/def :common/email
+  (s/with-gen
+    (s/and :common/non-empty-string #(re-matches #"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$" %))
+    (fn [] (gen/fmap (fn [[username subdomain]]
+                      (str username "@" subdomain ".com"))
+                    (s/gen (s/tuple :common/non-empty-string
+                                    :common/non-empty-string))))))
+
 (s/def :common/phone-number             :common/non-empty-string)
 (s/def :notification/channel            initiator/supported-channels)
 (s/def :notification/at                 pos-int?)
 (s/def :roesc/process-id                :common/non-empty-string)
-(s/def :roesc.request/notification      (s/keys :req-un [:notification/at
-                                                         :notification/channel
-                                                         :common/phone-number]))
+(s/def :roesc.request/notification      (s/or :phone (s/keys :req-un [:notification/at
+                                                                      :notification/channel
+                                                                      :common/phone-number])
+                                              :email (s/keys :req-un [:notification/at
+                                                                      :notification/channel
+                                                                      :common/email])))
 (s/def :roesc.request/notifications     (s/coll-of :roesc.request/notification :min-count 1))
 (s/def :roesc.request/action            #{"start" "stop"})
 (s/def :roesc.request/start-request     (s/keys :req-un [:roesc/process-id
