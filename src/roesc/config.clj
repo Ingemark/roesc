@@ -28,6 +28,6 @@
            :host     (env :smtp-host "localhost")
            :port     (Integer/parseInt (env :smtp-port "587"))})
 
-(def email {:from (env :mail-from)
+(def email {:from    (env :mail-from)
             :subject (env :mail-subject "There are new orders in the RoomOrders service")
-            :body (env :mail-body "")})
+            :body    (env :mail-body "")})
