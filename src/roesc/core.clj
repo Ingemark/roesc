@@ -20,6 +20,8 @@
   (:gen-class
    :methods [^:static [lambdahandler [java.util.Map] String]]))
 
+(set! *warn-on-reflection* true)
+
 (defn fetch-caller-id-registry [db]
   (->> (jdbc/query db ["select property_value from property where property_key='caller-id-registry'"])
        first :property_value json/read-str))
@@ -48,10 +50,12 @@
                                :request-processing-fn (initiator/make-request-processing-fn repository)
                                :message-cleanup-fn    (sqs/make-sqs-request-cleanup-fn sqscli config/request-queue)
                                :max-run-time          config/initiator-max-run-time-millis})
-          activator-fn       (activator/make-activator-function repository notifier-registry)]
+          activator-executor (Executors/newFixedThreadPool config/max-notifier-threads)
+          activator-fn       (activator/make-activator-function activator-executor repository notifier-registry)]
       (logger/info "Processing started.")
       (initiator-fn)
       (activator-fn)
+      (.shutdown activator-executor)
       (.shutdown twilio-executor)
       (.shutdown smtp-executor)
       (logger/info "Processing finished."))))

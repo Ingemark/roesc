@@ -9,7 +9,9 @@
 
 (def max-calling-threads (Integer/parseInt (env :max-calling-threads "3")))
 
-(def max-smtp-threads (Integer/parseInt (env :max-calling-threads "3")))
+(def max-smtp-threads (Integer/parseInt (env :max-stmp-threads "3")))
+
+(def max-notifier-threads (Integer/parseInt (env :max-notifier-threads "3")))
 
 (def db-spec {:dbtype   "postgresql"
               :port     (env :db-port 5432)

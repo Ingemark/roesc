@@ -37,9 +37,11 @@
           (for [[channel notifications] notifications-by-channel]
             [(find-notifier notifier-registry channel) notifications]))))
 
-(defn process [repository notifier-registry entries now]
-  (doseq [[notifier notifications] (notifications-by-notifier notifier-registry entries now)]
-    (notifier notifications))
+(defn process [executor repository notifier-registry entries now]
+  (let [runnables (->> (notifications-by-notifier notifier-registry entries now)
+                       (map (fn [[notifier notifications]] #(notifier notifications))))]
+    (doseq [future (.invokeAll executor runnables)]
+      (.get future)))
   (doseq [entry (->> entries (filter #(should-be-deleted? now %)))]
     (logger/info "Process for" (:process-id entry) "exhausted all notifications and completed.")
     (process-repository/delete repository (:process-id entry)))
@@ -48,11 +50,12 @@
       (logger/info "Process" (:process-id entry) "has" (count remaining-notifs) "remaining notification(s)." )
       (process-repository/update repository (:process-id entry) remaining-notifs))))
 
-(defn make-activator-function [repository notifier-registry]
+(defn make-activator-function [executor repository notifier-registry]
   (fn activator []
     (logger/info "Activator started.")
     (let [now (Instant/now)]
-      (process repository
+      (process executor
+               repository
                notifier-registry
                (process-repository/find-overdue repository now)
                now))

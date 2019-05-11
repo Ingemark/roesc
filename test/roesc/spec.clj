@@ -5,7 +5,8 @@
             [clojure.string :as string]
             [roesc.escalation-process-repository :as process-repository]
             [roesc.initiator :as initiator])
-  (:import (java.time ZonedDateTime ZoneId Instant)))
+  (:import (java.time ZonedDateTime ZoneId Instant)
+           java.util.concurrent.ExecutorService))
 
 (s/def :common/non-empty-string
   (s/with-gen
@@ -81,7 +82,8 @@
   :ret (s/map-of ifn? (s/coll-of :roesc.request/notification :min-count 1)))
 
 (s/fdef roesc.activator/process
-  :args (s/cat :repository :roesc.escalation-process-repository/repository
+  :args (s/cat :executor #(instance? ExecutorService %)
+               :repository :roesc.escalation-process-repository/repository
                :notifier-registry :roesc/notifier-registry
                :entries (s/coll-of :roesc.activator/entry)
                :now :common/instant))

@@ -22,5 +22,7 @@
 
 (defn make-executor-based-notifier [configuration]
   {:pre [(every? #(contains? configuration %) [:executor :smtp :email])]}
-  (common/make-executor-based-handler (:executor configuration)
-                                      (make-send-fn (:smtp configuration) (:email configuration))))
+  (with-exception-logging
+    (common/make-executor-based-handler
+     (:executor configuration)
+     (make-send-fn (:smtp configuration) (:email configuration)))))
