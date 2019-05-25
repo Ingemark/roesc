@@ -2,7 +2,6 @@
   (:require [postal.core :as postal]
             [clojure.set :refer [rename-keys]]
             [clojure.tools.logging :as logger]
-            [roesc.config :as config]
             [roesc.util :refer [with-exception-logging]]
             [roesc.notifier.common :as common])
   (:import java.util.concurrent.ExecutorService))
