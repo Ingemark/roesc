@@ -1,4 +1,4 @@
-{:deps    {org.clojure/clojure                  {:mvn/version "1.10.1-beta2"}
+{:deps    {org.clojure/clojure                  {:mvn/version "1.10.1"}
            org.clojure/core.async               {:mvn/version "0.4.490"}
            com.cognitect/http-client            {:mvn/version "0.1.87"}
            com.cognitect.aws/api                {:mvn/version "0.8.301"}
