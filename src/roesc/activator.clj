@@ -17,7 +17,7 @@
          (logger/error "No notifier for notification channel" notification-channel
                        "found in notifications" notifications))))
 
-(defn- should-be-deleted? [now entry]
+(defn should-be-deleted? [now entry]
   (every? #(due? now %) (:notifications entry)))
 
 (def should-be-updated? (complement should-be-deleted?))

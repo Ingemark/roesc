@@ -41,9 +41,12 @@
   (fn request-processing-fn [request]
     (process-request repository request)))
 
-(defn- within-time-limit? [start-time-millis time-limit-millis]
+(defn- now []
+  (System/currentTimeMillis))
+
+(defn- within-time-limit? [now start-time-millis time-limit-millis]
   (or (nil? time-limit-millis)
-      (let [elapsed-time (- (System/currentTimeMillis) start-time-millis)]
+      (let [elapsed-time (- now start-time-millis)]
         (< elapsed-time time-limit-millis))))
 
 (defn make-initiator-fn
@@ -86,7 +89,7 @@
                    (request-processing-fn request)))))
             (skipping-exceptions
              (message-cleanup-fn messages))
-            (if (within-time-limit? start-time max-run-time-millis)
+            (if (within-time-limit? (now) start-time max-run-time-millis)
               (recur (message-fetching-fn))
               (logger/info "Exiting due to exceeding initiator max run time limit of"
                            max-run-time-millis))))))
