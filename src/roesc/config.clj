@@ -1,5 +1,6 @@
 (ns roesc.config
-  (:require [environ.core :refer [env]]))
+  (:require [environ.core :refer [env]]
+            [clojure.java.io :refer [as-url]]))
 
 (def request-queue (env :request-queue))
 
@@ -9,7 +10,9 @@
 
 (def max-calling-threads (Integer/parseInt (env :max-calling-threads "3")))
 
-(def max-smtp-threads (Integer/parseInt (env :max-stmp-threads "3")))
+(def max-smtp-threads (Integer/parseInt (env :max-smtp-threads "3")))
+
+(def max-pubnub-threads (Integer/parseInt (env :max-pubnub-threads "3")))
 
 (def max-notifier-threads (Integer/parseInt (env :max-notifier-threads "3")))
 
@@ -33,3 +36,8 @@
 (def email {:from    (env :mail-from)
             :subject (env :mail-subject "There are new orders in the RoomOrders service")
             :body    (env :mail-body "")})
+
+(def pubnub {:service-url (as-url (env :pubnub-service-url "https://ps.pndsn.com"))
+             :uuid        (env :pubnub-uuid)
+             :pub-key     (env :pubnub-pub-key)
+             :sub-key     (env :pubnub-sub-key)})

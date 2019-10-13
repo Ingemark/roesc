@@ -15,7 +15,8 @@
             [roesc.escalation-process-repository.postgresql :as postgresql]
             [roesc.initiator.sqs :as sqs]
             [roesc.notifier.twilio :as twilio]
-            [roesc.notifier.smtp :as smtp])
+            [roesc.notifier.smtp :as smtp]
+            [roesc.notifier.pubnub :as pubnub])
   (:import [java.util.concurrent Executors])
   (:gen-class
    :methods [^:static [lambdahandler [java.util.Map] String]]))
@@ -39,7 +40,10 @@
           smtp-notifier      (smtp/make-executor-based-notifier {:executor smtp-executor
                                                                  :smtp     config/smtp
                                                                  :email    config/email})
-          notifier-registry  {"phone" twilio-notifier, "email" smtp-notifier}
+          pubnub-executor    (Executors/newFixedThreadPool config/max-pubnub-threads)
+          pubnub-notifier    (pubnub/make-executor-based-notifier (merge config/pubnub
+                                                                         {:executor pubnub-executor}))
+          notifier-registry  {"phone" twilio-notifier, "email" smtp-notifier, "pubnub" pubnub-notifier}
           sqscli             (aws/client {:api                  :sqs
                                           :credentials-provider (credentials/default-credentials-provider)})
           repository         (postgresql/make-repository db)

@@ -21,9 +21,10 @@ Here are some examples.
 {
  "process-id": "restaurantname",
  "action": "start",
- "notifications": [{"channel": "phone", "at": 1555057084, "phone-number": "+3851111111"},
-                   {"channel": "phone", "at": 1555057096, "phone-number": "+3851111111"},
-                   {"channel": "email", "at": 1555057096, "email": "me@example.org"}]
+ "notifications": [{"channel": "phone",  "at": 1555057084, "phone-number": "+3851111111"},
+                   {"channel": "phone",  "at": 1555057096, "phone-number": "+3851111111"},
+                   {"channel": "email",  "at": 1555057096, "email": "me@example.org"},
+                   {"channel": "pubnub", "at": 1555057096, "pubnub-channel": "ch13234"}]
 }
 ```
 
@@ -37,9 +38,11 @@ Here are some examples.
 The meaning of attributes is the following:
 - process-id: mandatory; an id of the escalation process, usually one escalation process per restaurantname,
 - action: mandatory; "start" or "stop",
-- channel: mandatory; "phone" or "email",
+- channel: mandatory; "phone", "email", or "pubnub",
 - at: (Unix epoch) time when the notification should be sent,
-- phone-number: "full-format" phone number which to call.
+- phone-number: "full-format" phone number which to call when channel is "phone",
+- email: destination email address when channel is "email",
+- pubnub-channel: Pubnub channel for notifications when channel is "pubnub".
 
 ## Specification
 
@@ -144,7 +147,7 @@ database table `property` with `property_key` being `caller-id-registry`':
 This configuration means that calls to numbers starting with +385 will have
 +3851111111 set as caller id, etc.
 
-Example of configuration XML pointed to by TWILIO_URL env.var.:
+Example of a configuration XML pointed to by TWILIO_URL environment variable:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
