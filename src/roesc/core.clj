@@ -62,6 +62,7 @@
       (.shutdown activator-executor)
       (.shutdown twilio-executor)
       (.shutdown smtp-executor)
+      (.shutdown pubnub-executor)
       (logger/info "Processing finished."))))
 
 (defn -lambdahandler [_]
