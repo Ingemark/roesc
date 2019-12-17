@@ -17,21 +17,21 @@
                 (not-empty (:notifications request))
                 (->> request :notifications (map :channel) (every? valid-channel?))))))
 
-(defn- should-create-new-process? [request process-exists?]
-  (and (= "start" (:action request))
+(defn- should-create-new-process? [requested-action process-exists?]
+  (and (= requested-action "start")
        (not process-exists?)))
 
-(defn- should-cancel-process? [request process-exists?]
-  (and (= "stop" (:action request))
+(defn- should-cancel-process? [requested-action process-exists?]
+  (and (= requested-action "stop")
        process-exists?))
 
 (defn- process-request [repository request]
   (let [process-exists? (boolean (process-repository/exists? repository (:process-id request)))]
     (cond
-      (should-create-new-process? request process-exists?)
+      (should-create-new-process? (:action request) process-exists?)
       (process-repository/insert repository (:process-id request) (:notifications request))
 
-      (should-cancel-process? request process-exists?)
+      (should-cancel-process? (:action request) process-exists?)
       (process-repository/delete repository (:process-id request))
 
       :else
