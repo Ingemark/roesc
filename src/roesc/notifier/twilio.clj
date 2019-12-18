@@ -8,7 +8,8 @@
   (:import java.util.Base64
            java.net.URLEncoder
            java.nio.ByteBuffer
-           java.util.concurrent.ExecutorService))
+           java.util.concurrent.ExecutorService
+           java.util.Arrays))
 
 (defn- find-caller-id
   "Find caller-id which should be used for the outgoing call to `phone-number`."
@@ -45,13 +46,21 @@
                                              "To" phone-number
                                              "From" caller-id
                                              "Url" url}))})
+(defn- ok? [http-status]
+  (<= 200 http-status 299))
+
+(defn- ->printable [byte-buffer]
+  (try (str (.decode java.nio.charset.StandardCharsets/UTF_8 byte-buffer))
+       (catch Exception _ "<unable to decode>")))
 
 (defn- make-http-send-fn [client]
   (fn twilio-http-send [request]
-    (let [response-status (-> (http/submit client request) async/<!! :status)]
-      (logger/log (if (<= 200 response-status 299) :info :error)
-                  (format "Twilio request received a response with status %s"
-                          response-status)))))
+    (let [response (-> (http/submit client request) async/<!!)]
+      (if (-> response :status ok?)
+        (logger/log :info (format "Twilio replied with status %s"
+                                  (:status response)))
+        (logger/log :error (format "Twilio replied with status %s, body was: %s"
+                                   (:status response) (-> response :body ->printable)))))))
 
 (defn- make-call-fn [{:keys [http-send-fn account-sid auth-token host url caller-id-registry] :as configuration}]
   (fn twilio-call-fn [notification]
