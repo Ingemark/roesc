@@ -57,12 +57,14 @@
           activator-executor (Executors/newFixedThreadPool config/max-notifier-threads)
           activator-fn       (activator/make-activator-function activator-executor repository notifier-registry)]
       (logger/info "Processing started.")
-      (initiator-fn)
-      (activator-fn)
-      (.shutdown activator-executor)
-      (.shutdown twilio-executor)
-      (.shutdown smtp-executor)
-      (.shutdown pubnub-executor)
+      (try
+        (initiator-fn)
+        (activator-fn)
+        (finally
+          (.shutdown activator-executor)
+          (.shutdown twilio-executor)
+          (.shutdown smtp-executor)
+          (.shutdown pubnub-executor)))
       (logger/info "Processing finished."))))
 
 (defn -lambdahandler [_]
