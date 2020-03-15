@@ -1,7 +1,7 @@
 (ns roesc.initiator-test
   (:require [roesc.initiator :as initiator]
             [roesc.escalation-process-repository :as process-repository]
-            [clojure.test :as t]
+            [clojure.test :as t :refer [deftest testing is]]
             [clojure.set :refer [subset?]]
             [clojure.tools.logging :as logger]
             [roesc.spec]
@@ -56,23 +56,23 @@
         (reset! passed true)
         requests))))
 
-(t/deftest handling-requests
-  (t/testing "successful initiation of new process"
+(deftest handling-requests
+  (testing "successful initiation of new process"
     (let [r (make-mock-repository [] #{})]
       (run-initiator r (fetcher [sample-start-request]))
-      (t/is (called? r :insert))))
-  (t/testing "ignoring a request which tries to initiate an already existing process"
+      (is (called? r :insert))))
+  (testing "ignoring a request which tries to initiate an already existing process"
     (let [r (make-mock-repository [] #{"restaurant1"})]
       (run-initiator r (fetcher [sample-start-request]))
-      (t/is (not (called? r :insert)))))
-  (t/testing "successful stopping of a process"
+      (is (not (called? r :insert)))))
+  (testing "successful stopping of a process"
     (let [r (make-mock-repository [] #{"restaurant1" "restaurant2"})]
       (run-initiator r (fetcher [{:action "stop" :process-id "restaurant1"}]))
-      (t/is (called? r :delete))))
-  (t/testing "ignoring a request which tries to stop a process which does not exist"
+      (is (called? r :delete))))
+  (testing "ignoring a request which tries to stop a process which does not exist"
     (let [r (make-mock-repository [] #{"other1"})]
       (run-initiator r (fetcher [{:action "stop" :process-id "restaurant1"}]))
-      (t/is (not (called? r :delete))))))
+      (is (not (called? r :delete))))))
 
 (defrecord FaultingMockRepository [])
 
@@ -84,8 +84,8 @@
   (-delete [repository process-id] nil)
   (-exists? [repository process-id] nil))
 
-(t/deftest handling-errors
-  (t/testing "must skip requests if an error is thrown in the request processing function"
+(deftest handling-errors
+  (testing "must skip requests if an error is thrown in the request processing function"
     (let [r (FaultingMockRepository.)
           initiator (initiator/make-initiator-fn
                      {:message-fetching-fn (fetcher [sample-start-request])
@@ -94,8 +94,8 @@
                                                (throw (Exception. "deliberately throwing an exception")))
                       :message-cleanup-fn (fn [& _])})]
       (initiator)
-      (t/is true)))
-  (t/testing "invalid requests must be deleted and must not affect other requests"
+      (is true)))
+  (testing "invalid requests must be deleted and must not affect other requests"
     (let [r (FaultingMockRepository.)]
       (run-initiator r (fetcher [{:invalid-request -1}]))
-      (t/is true))))
+      (is true))))

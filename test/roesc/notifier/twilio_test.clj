@@ -1,6 +1,6 @@
 (ns roesc.notifier.twilio-test
   (:require [roesc.notifier.twilio :as twilio]
-            [clojure.test :as t]
+            [clojure.test :as t :refer [deftest testing is]]
             [clojure.tools.logging :as logger]
             [roesc.spec]
             [roesc.notifier.common :as common]
@@ -32,8 +32,8 @@
       (swap! (:calls this) conj args)))
   (get-recording [this] (deref (:calls this))))
 
-(t/deftest using-handler
-  (t/testing "must run call-fn on each notification"
+(deftest using-handler
+  (testing "must run call-fn on each notification"
     (let [executor (Executors/newFixedThreadPool 3)]
       (try
         (let [recorder (make-recorder)
@@ -41,12 +41,12 @@
               notifications [{:process-id "p1" :phone-number "+1"}
                              {:process-id "p2" :phone-number "+2"}]]
           (handler notifications)
-          (t/is (= #{[(first notifications)] [(second notifications)]}
+          (is (= #{[(first notifications)] [(second notifications)]}
                    (set (get-recording recorder)))))
         (finally (.shutdown executor))))))
 
-(t/deftest using-call-fn
-  (t/testing "call-fn must generate valid Twilio API requests"
+(deftest using-call-fn
+  (testing "call-fn must generate valid Twilio API requests"
     (let [recorder (make-recorder)
           call-fn (#'twilio/make-call-fn {:http-send-fn (get-fn recorder)
                                           :account-sid "SID"
@@ -56,7 +56,7 @@
                                           :caller-id-registry {"+385" "+385123"}})]
       (call-fn {:process-id "p1" :phone-number "+385777"})
       (let [request (-> (get-recording recorder) ffirst)]
-        (t/is (= {:server-name "HOST"
+        (is (= {:server-name "HOST"
                   :server-port 443,
                   :scheme :https
                   :request-method :post
@@ -64,5 +64,5 @@
                   :headers {"authorization" "Basic U0lEOlRPS0VO",
                             "content-type" "application/x-www-form-urlencoded"}}
                  (-> request (dissoc :body))))
-        (t/is (= "Method=GET&To=%2B385777&From=%2B385123&Url=URL"
+        (is (= "Method=GET&To=%2B385777&From=%2B385123&Url=URL"
                  (-> request :body .array String.)))))))

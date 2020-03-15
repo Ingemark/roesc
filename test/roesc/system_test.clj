@@ -1,5 +1,5 @@
 (ns roesc.system-test
-  (:require  [clojure.test :as t]
+  (:require  [clojure.test :as t :refer [deftest testing is]]
              [roesc.core :as core]
              [roesc.spec]
              [cognitect.aws.credentials :as credentials]
@@ -19,8 +19,8 @@
                                         :MessageBody (json/write-str %)}})
                 requests))))
 
-(t/deftest ^:integration system-test
-  (t/testing "running the component"
+(deftest ^:integration system-test
+  (testing "running the component"
     (st/instrument)
     (send-requests [{:process-id "restaurant1",
                      :action "start",
@@ -31,4 +31,4 @@
                      :notifications [{:channel "phone", :phone-number "+15005550006", :at 1557568911}
                                      {:channel "email", :email "me@example.com", :at 1557568911}]}])
     (core/run)
-    (t/is true)))
+    (is true)))
