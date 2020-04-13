@@ -48,12 +48,13 @@
                                           :credentials-provider (credentials/default-credentials-provider)})
           repository         (postgresql/make-repository db)
           initiator-fn       (initiator/make-initiator-fn
-                              {:message-fetching-fn   (sqs/make-sqs-request-fetching-fn
-                                                       sqscli config/request-queue config/sqs-read-wait-time-seconds)
-                               :payload-extracting-fn sqs/extract-payload
-                               :request-processing-fn (initiator/make-request-processing-fn repository)
-                               :message-cleanup-fn    (sqs/make-sqs-request-cleanup-fn sqscli config/request-queue)
-                               :max-run-time          config/initiator-max-run-time-millis})
+                              {:message-fetching-fn       (sqs/make-sqs-request-fetching-fn
+                                                           sqscli config/request-queue config/sqs-read-wait-time-seconds)
+                               :message-log-formatting-fn (fn [msg] (pr-str (dissoc msg :ReceiptHandle)))
+                               :payload-extracting-fn     sqs/extract-payload
+                               :request-processing-fn     (initiator/make-request-processing-fn repository)
+                               :message-cleanup-fn        (sqs/make-sqs-request-cleanup-fn sqscli config/request-queue)
+                               :max-run-time              config/initiator-max-run-time-millis})
           activator-executor (Executors/newFixedThreadPool config/max-notifier-threads)
           activator-fn       (activator/make-activator-function activator-executor repository notifier-registry)]
       (logger/info "Processing started.")

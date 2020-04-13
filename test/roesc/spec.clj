@@ -31,12 +31,14 @@
 (s/def :notification/channel            initiator/supported-channels)
 (s/def :notification/at                 pos-int?)
 (s/def :roesc/process-id                :common/non-empty-string)
-(s/def :roesc.request/notification      (s/or :phone (s/keys :req-un [:notification/at
-                                                                      :notification/channel
-                                                                      :common/phone-number])
-                                              :email (s/keys :req-un [:notification/at
-                                                                      :notification/channel
-                                                                      :common/email])))
+(s/def :roesc.request/phone-notification (s/keys :req-un [:notification/at
+                                                          :notification/channel
+                                                          :common/phone-number]))
+(s/def :roesc.request/email-notification (s/keys :req-un [:notification/at
+                                                          :notification/channel
+                                                          :common/email]))
+(s/def :roesc.request/notification      (s/or :phone :roesc.request/phone-notification
+                                              :email :roesc.request/email-notification))
 (s/def :roesc.request/notifications     (s/coll-of :roesc.request/notification :min-count 1))
 (s/def :roesc.request/action            #{"start" "stop"})
 (s/def :roesc.request/start-request     (s/keys :req-un [:roesc/process-id

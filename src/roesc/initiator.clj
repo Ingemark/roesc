@@ -69,10 +69,12 @@
   Variable `max-run-time-millis` sets the limit on the amount of time the loop
   function will run."
   [{:keys [message-fetching-fn
+           message-log-formatting-fn
            payload-extracting-fn
            request-processing-fn
            message-cleanup-fn
-           max-run-time-millis]}]
+           max-run-time-millis]
+    :or {message-log-formatting-fn pr-str}}]
   (fn initiator-input-fn []
     (logger/info "Initiator started.")
     (let [start-time (System/currentTimeMillis)]
@@ -81,7 +83,7 @@
           (logger/info "No more messages to fetch.")
           (do
             (doseq [msg messages]
-              (logger/info "processing" (pr-str (dissoc msg :ReceiptHandle)))
+              (logger/info "processing" (message-log-formatting-fn msg))
               (skipping-exceptions
                (let [request (payload-extracting-fn msg)]
                  (if-not (valid? request)
