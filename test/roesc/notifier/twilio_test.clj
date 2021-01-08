@@ -37,7 +37,7 @@
     (let [executor (Executors/newFixedThreadPool 3)]
       (try
         (let [recorder (make-recorder)
-              handler (#'common/make-executor-based-handler executor (get-fn recorder))
+              handler (common/make-executor-based-handler executor (get-fn recorder))
               notifications [{:process-id "p1" :phone-number "+1"}
                              {:process-id "p2" :phone-number "+2"}]]
           (handler notifications)
