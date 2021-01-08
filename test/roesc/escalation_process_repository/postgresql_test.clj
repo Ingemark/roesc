@@ -6,7 +6,8 @@
             [roesc.config :as config]
             [roesc.spec]
             [orchestra.spec.test])
-  (:import java.time.Instant))
+  (:import java.time.Instant
+           java.util.UUID))
 
 (defn with-instrumentation [f]
   (orchestra.spec.test/instrument)
@@ -18,7 +19,7 @@
   (testing "inserting records"
     (jdbc/with-db-connection [db config/db-spec]
       (let [r (postgresql/make-repository db)
-            process-id (str (java.util.UUID/randomUUID))]
+            process-id (str (UUID/randomUUID))]
         (repository/insert r process-id [{:at 1 :channel "phone" :phone-number "1"}])
         (is (repository/exists? r process-id)))))
   (testing "overdue notifications"
@@ -32,7 +33,7 @@
   (testing "updating records"
     (jdbc/with-db-connection [db config/db-spec]
       (let [r (postgresql/make-repository db)
-            process-id (str (java.util.UUID/randomUUID))]
+            process-id (str (UUID/randomUUID))]
         (repository/insert r process-id [{:at 1 :channel "phone" :phone-number "1"}
                                          {:at 2 :channel "phone" :phone-number "3"}])
         (repository/update r process-id [{:at 3 :channel "phone" :phone-number "3"}])
