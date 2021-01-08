@@ -21,7 +21,7 @@
 (defn- ->bbuf [^String content]
   (ByteBuffer/wrap (.getBytes content)))
 
-(defn- url-encode [s]
+(defn- url-encode [^String s]
   (URLEncoder/encode s "UTF-8"))
 
 (defn- form-url-encode
