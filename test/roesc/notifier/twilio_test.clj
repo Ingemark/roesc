@@ -29,7 +29,8 @@
     (reset! (:calls this) []))
   (get-fn [this]
     (fn [& args]
-      (swap! (:calls this) conj args)))
+      (swap! (:calls this) conj args)
+      :ok))
   (get-recording [this] (deref (:calls this))))
 
 (deftest using-handler
@@ -39,8 +40,9 @@
         (let [recorder (make-recorder)
               handler (common/make-executor-based-handler executor (get-fn recorder))
               notifications [{:process-id "p1" :phone-number "+1"}
-                             {:process-id "p2" :phone-number "+2"}]]
-          (handler notifications)
+                             {:process-id "p2" :phone-number "+2"}]
+              results (handler notifications)]
+          (is (= [:ok :ok] results))
           (is (= #{[(first notifications)] [(second notifications)]}
                    (set (get-recording recorder)))))
         (finally (.shutdown executor))))))
