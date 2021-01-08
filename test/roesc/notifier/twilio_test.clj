@@ -44,27 +44,27 @@
               results (handler notifications)]
           (is (= [:ok :ok] results))
           (is (= #{[(first notifications)] [(second notifications)]}
-                   (set (get-recording recorder)))))
+                 (set (get-recording recorder)))))
         (finally (.shutdown executor))))))
 
 (deftest using-call-fn
   (testing "call-fn must generate valid Twilio API requests"
     (let [recorder (make-recorder)
-          call-fn (#'twilio/make-call-fn {:http-send-fn (get-fn recorder)
-                                          :account-sid "SID"
-                                          :auth-token "TOKEN"
-                                          :host "HOST"
-                                          :url "URL"
+          call-fn (#'twilio/make-call-fn {:http-send-fn       (get-fn recorder)
+                                          :account-sid        "SID"
+                                          :auth-token         "TOKEN"
+                                          :host               "HOST"
+                                          :url                "URL"
                                           :caller-id-registry {"+385" "+385123"}})]
       (call-fn {:process-id "p1" :phone-number "+385777"})
       (let [request (-> (get-recording recorder) ffirst)]
-        (is (= {:server-name "HOST"
-                  :server-port 443,
-                  :scheme :https
-                  :request-method :post
-                  :uri "/2010-04-01/Accounts/SID/Calls.json"
-                  :headers {"authorization" "Basic U0lEOlRPS0VO",
-                            "content-type" "application/x-www-form-urlencoded"}}
-                 (-> request (dissoc :body))))
+        (is (= {:server-name    "HOST"
+                :server-port    443,
+                :scheme         :https
+                :request-method :post
+                :uri            "/2010-04-01/Accounts/SID/Calls.json"
+                :headers        {"authorization" "Basic U0lEOlRPS0VO",
+                                 "content-type"  "application/x-www-form-urlencoded"}}
+               (-> request (dissoc :body))))
         (is (= "Method=GET&To=%2B385777&From=%2B385123&Url=URL"
-                 (-> request :body .array String.)))))))
+               (-> request :body .array String.)))))))
