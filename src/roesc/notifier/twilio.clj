@@ -82,5 +82,5 @@
   (with-exception-logging
     (common/make-executor-based-handler
      (:executor configuration)
-     (make-call-fn (merge configuration
-                          {:http-send-fn (make-http-send-fn (http/create {}))})) )))
+     (make-call-fn (merge {:http-send-fn (make-http-send-fn (http/create {}))}
+                          configuration)))))
