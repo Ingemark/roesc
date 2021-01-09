@@ -16,3 +16,5 @@ pom.xml.asc
 .env
 /private
 /.dir-locals.el
+/.idea
+roesc.iml
