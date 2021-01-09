@@ -14,6 +14,7 @@
   `(try ~@body (catch Exception e# (logger/error e#))))
 
 (defmacro with-time-logging [name & body]
-  `(let [start-time# (System/currentTimeMillis)]
-     ~@body
-     (logger/info ~name "took" (- (System/currentTimeMillis) start-time#) "ms")))
+  `(let [start-time# (System/currentTimeMillis)
+         result# (do ~@body)]
+     (logger/info ~name "took" (- (System/currentTimeMillis) start-time#) "ms")
+     result#))

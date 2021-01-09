@@ -43,9 +43,9 @@
    :headers        {"authorization" (format "Basic %s" (basic-auth-token account-sid auth-token))
                     "content-type"  "application/x-www-form-urlencoded"}
    :body           (->bbuf (form-url-encode {"Method" "GET"
-                                             "To" phone-number
-                                             "From" caller-id
-                                             "Url" url}))})
+                                             "To"     phone-number
+                                             "From"   caller-id
+                                             "Url"    url}))})
 (defn- ok? [http-status]
   (<= 200 http-status 299))
 
@@ -81,6 +81,6 @@
   {:pre [(contains? configuration :executor)]}
   (with-exception-logging
     (common/make-executor-based-handler
-     (:executor configuration)
-     (make-call-fn (merge {:http-send-fn (make-http-send-fn (http/create {}))}
-                          configuration)))))
+      (:executor configuration)
+      (make-call-fn (merge {:http-send-fn (make-http-send-fn (http/create {}))}
+                           configuration)))))
